@@ -1,0 +1,7 @@
+# ---------------------------------------------------------------------------
+# Optional: API testing.
+#   pip install -r requirements.txt -r requirements-api.txt
+# ---------------------------------------------------------------------------
+robotframework-requests==0.9.7
+robotframework-jsonlibrary==0.5
+jsonschema==4.23.0

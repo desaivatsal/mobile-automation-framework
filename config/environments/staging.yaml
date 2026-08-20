@@ -1,0 +1,21 @@
+# Pre-production. Mirrors prod config; safe to run destructive-ish flows.
+execution:
+  app_key: demo_app
+  build_name: staging
+
+logging:
+  level: INFO
+
+reporting:
+  screenshot_policy: failures_only
+
+retry:
+  rerun_failed_suites: 1
+
+test_data_file: testdata/staging.yaml
+
+web:
+  base_url: https://staging.example.com
+
+api:
+  base_url: https://api.staging.example.com

@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# Android capabilities, split by execution target.
+# Only `capabilities` and `sauce_options` are merged into the W3C payload;
+# CapabilityBuilder prefixes vendor keys correctly (appium:*, sauce:options).
+# ---------------------------------------------------------------------------
+
+platform_name: Android
+automation_name: UiAutomator2
+
+targets:
+  sauce_vdc:
+    capabilities:
+      deviceName: "Google Pixel 7 Pro GoogleAPI Emulator"
+      platformVersion: "13.0"
+      # Emulators are slower to boot than real devices - be generous
+      newCommandTimeout: 300
+      autoGrantPermissions: true
+      # Do not reuse app state between tests
+      noReset: false
+      fullReset: false
+    sauce_options:
+      deviceOrientation: PORTRAIT
+
+  sauce_rdc:
+    capabilities:
+      # Regex matches any available Pixel - avoids queueing on one exact device
+      deviceName: "Google Pixel.*"
+      platformVersion: "13"
+      autoGrantPermissions: true
+      newCommandTimeout: 300
+    sauce_options:
+      # Real device specifics
+      cacheId: ""            # set to reuse an allocated device across tests
+      deviceOrientation: PORTRAIT
+      resigningEnabled: true
+      # Only ask for private devices; drop to false to use the public pool
+      privateDevicesOnly: false
+
+  local:
+    capabilities:
+      deviceName: "emulator-5554"
+      platformVersion: "13.0"
+      autoGrantPermissions: true
+      newCommandTimeout: 300

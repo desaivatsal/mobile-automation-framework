@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Appium, Sauce and Robot all move fast enough that pinned versions go stale
+  # within a quarter. Weekly PRs keep the upgrade small instead of annual and painful.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      robot:
+        patterns:
+          - "robotframework*"
+      appium:
+        patterns:
+          - "Appium-Python-Client"
+          - "selenium"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

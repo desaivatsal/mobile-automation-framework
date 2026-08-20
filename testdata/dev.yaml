@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------------------
+# DEV data. Environment-specific test data. Exposed to Robot as ${TEST_DATA}.
+# Real credentials belong in secrets, not here - see `secret_users` below.
+# ---------------------------------------------------------------------------
+users:
+  standard:
+    username: standard_user
+    password: secret_sauce
+  locked_out:
+    username: locked_out_user
+    password: secret_sauce
+  problem:
+    username: problem_user
+    password: secret_sauce
+  invalid:
+    username: no_such_user
+    password: wrong_password
+
+expected:
+  login_error: "Username and password do not match any user in this service."
+  locked_out_error: "Sorry, this user has been locked out."
+  products_title: PRODUCTS
+  first_product: "Sauce Labs Backpack"
+  first_product_price: "$29.99"
+
+# Credentials that must never sit in git are read from the environment at
+# runtime instead, e.g. ${TEST_DATA}[secret_users][admin] -> %{QA_ADMIN_PASSWORD}
+secret_users: {}

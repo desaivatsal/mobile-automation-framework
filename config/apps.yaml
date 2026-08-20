@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# App registry: which binary gets installed for a given app_key + platform.
+#
+# `storage` is a Sauce Labs app-storage reference and accepts either form:
+#   storage:filename=<exact file name as shown in App Management>
+#   storage:<app storage id, e.g. 1a2b3c4d-...>
+#
+# Run `python scripts/list_sauce_apps.py` to print exactly what is uploaded to
+# your account, then paste the real values below. Do NOT commit .apk/.ipa files
+# to this repository - upload them to Sauce Storage instead
+# (see scripts/upload_app.py).
+# ---------------------------------------------------------------------------
+
+demo_app:
+  description: >-
+    Sauce Labs sample "Swag Labs" demo app. Used as the reference
+    implementation so the framework has working tests out of the box.
+  android:
+    storage: "storage:filename=Android.SauceLabs.Mobile.Sample.app.2.7.1.apk"
+    app_package: com.swaglabsmobileapp
+    app_activity: com.swaglabsmobileapp.MainActivity
+  ios:
+    storage: "storage:filename=iOS.RealDevice.SauceLabs.Mobile.Sample.app.2.7.1.ipa"
+    bundle_id: com.saucelabs.mydemoapp.rn
+
+# ---------------------------------------------------------------------------
+# TODO(HP): replace the placeholders below with the real Element Corp apps.
+# Everything else in the framework is app-agnostic - only this block, the
+# locator files under resources/locators/, and the page keywords need to change.
+# ---------------------------------------------------------------------------
+element_app:
+  description: Element Corp application under test.
+  android:
+    storage: "storage:filename=REPLACE_ME.apk"
+    app_package: ""
+    app_activity: ""
+  ios:
+    storage: "storage:filename=REPLACE_ME.ipa"
+    bundle_id: ""

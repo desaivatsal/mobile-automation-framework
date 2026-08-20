@@ -1,0 +1,42 @@
+# Secrets - never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Test output
+results/
+reports/
+allure-results/
+allure-report/
+output.xml
+log.html
+report.html
+*.png
+!docs/**/*.png
+pabot_results/
+.pabotsuitenames
+
+# Application binaries (upload to Sauce Storage instead of committing)
+apps/
+*.apk
+*.ipa
+*.aab
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store

@@ -1,0 +1,193 @@
+name: Mobile Tests
+
+# Real Sauce Labs execution. Costs money and device minutes, so it is NOT wired
+# to every push:
+#   * nightly regression on a schedule
+#   * smoke on merge to main
+#   * anything, on demand, via "Run workflow"
+#
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   SAUCE_USERNAME    - from https://app.saucelabs.com/user-settings (NOT your email)
+#   SAUCE_ACCESS_KEY  - from the same page
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 02:00 UTC = 07:30 IST. Nightly regression on both platforms.
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [qa, staging, dev, prod]
+        default: qa
+      platform:
+        description: Platform(s) to run
+        type: choice
+        options: [both, android, ios]
+        default: both
+      target:
+        description: Device cloud
+        type: choice
+        options: [sauce_vdc, sauce_rdc]
+        default: sauce_vdc
+      tags:
+        description: Robot tag expression to include
+        type: string
+        default: smoke
+      app_key:
+        description: App from config/apps.yaml
+        type: string
+        default: demo_app
+
+concurrency:
+  # Sauce concurrency is a paid limit. Never let two runs of the same ref
+  # compete for the same device pool.
+  group: mobile-${{ github.ref }}-${{ github.event.inputs.environment || 'qa' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  matrix-setup:
+    name: Resolve matrix
+    runs-on: ubuntu-latest
+    outputs:
+      platforms: ${{ steps.resolve.outputs.platforms }}
+      tags: ${{ steps.resolve.outputs.tags }}
+    steps:
+      - id: resolve
+        run: |
+          CHOICE="${{ github.event.inputs.platform || 'both' }}"
+          if [ "$CHOICE" = "both" ]; then
+            echo 'platforms=["android","ios"]' >> "$GITHUB_OUTPUT"
+          else
+            echo "platforms=[\"$CHOICE\"]" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -n "${{ github.event.inputs.tags }}" ]; then
+            echo "tags=${{ github.event.inputs.tags }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "tags=regression" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=smoke" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    name: ${{ matrix.platform }} / ${{ github.event.inputs.environment || 'qa' }}
+    needs: matrix-setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(needs.matrix-setup.outputs.platforms) }}
+    env:
+      SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+      SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+      SAUCE_REGION: ${{ vars.SAUCE_REGION || 'us-west-1' }}
+      APP_KEY: ${{ github.event.inputs.app_key || 'demo_app' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fail fast if credentials are missing
+        # A missing secret otherwise shows up 40 lines into an Appium stack
+        # trace. Say it plainly, at second zero.
+        run: |
+          if [ -z "${SAUCE_USERNAME}" ] || [ -z "${SAUCE_ACCESS_KEY}" ]; then
+            echo "::error::SAUCE_USERNAME / SAUCE_ACCESS_KEY are not set. Add them under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Run ${{ matrix.platform }} suites
+        run: |
+          ./scripts/run_tests.sh \
+            -e "${{ github.event.inputs.environment || 'qa' }}" \
+            -p "${{ matrix.platform }}" \
+            -t "${{ github.event.inputs.target || 'sauce_vdc' }}" \
+            -i "${{ needs.matrix-setup.outputs.tags }}"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.platform }}
+          path: |
+            results/**/report.html
+            results/**/log.html
+            results/**/output.xml
+            results/**/xunit.xml
+            results/**/screenshots/**
+            results/**/page_source/**
+            results/logs/**
+          retention-days: 30
+
+      - name: Publish test summary
+        if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: results/**/xunit.xml
+          check_name: Robot results (${{ matrix.platform }})
+          fail_on_failure: false
+          require_tests: false
+
+  publish-report:
+    name: Publish report to Pages
+    needs: test
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded
+          pattern: results-*
+
+      - name: Build a landing page
+        run: |
+          mkdir -p site
+          cp -r downloaded/* site/ 2>/dev/null || true
+          {
+            echo "<!doctype html><meta charset=utf-8><title>Mobile test reports</title>"
+            echo "<style>body{font-family:system-ui,sans-serif;margin:3rem;max-width:50rem}"
+            echo "a{display:block;padding:.4rem 0}</style>"
+            echo "<h1>Mobile automation reports</h1>"
+            echo "<p>Build ${GITHUB_RUN_NUMBER} &middot; commit <code>${GITHUB_SHA:0:8}</code></p>"
+            find site -name report.html | sed 's|^site/||' \
+              | while read -r f; do echo "<a href=\"$f\">$f</a>"; done
+          } > site/index.html
+
+      - uses: actions/configure-pages@v5
+        # Requires Pages to be enabled (Settings > Pages > Source: GitHub Actions).
+        # Left non-blocking so a missing Pages setup never reddens a green test run.
+        continue-on-error: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+        continue-on-error: true
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true

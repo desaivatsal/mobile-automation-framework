@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# iOS capabilities, split by execution target.
+#
+# NOTE: an .ipa will NOT install on a Sauce simulator. Simulators need a
+# .zip of a .app built for the simulator architecture. If you only have an
+# .ipa, run iOS against sauce_rdc instead. This is the single most common
+# reason "the iOS suite works for Android but not iOS".
+# ---------------------------------------------------------------------------
+
+platform_name: iOS
+automation_name: XCUITest
+
+targets:
+  sauce_vdc:
+    capabilities:
+      deviceName: "iPhone 14 Simulator"
+      platformVersion: "16.2"
+      newCommandTimeout: 300
+      # XCUITest is slow to install WebDriverAgent on a cold simulator
+      wdaLaunchTimeout: 120000
+      wdaConnectionTimeout: 120000
+      noReset: false
+      fullReset: false
+    sauce_options:
+      deviceOrientation: PORTRAIT
+
+  sauce_rdc:
+    capabilities:
+      deviceName: "iPhone.*"
+      platformVersion: "16"
+      newCommandTimeout: 300
+    sauce_options:
+      cacheId: ""
+      deviceOrientation: PORTRAIT
+      resigningEnabled: true
+      # Required for real-device iOS instrumentation
+      sauceLabsImageInjectionEnabled: false
+      privateDevicesOnly: false
+
+  local:
+    capabilities:
+      deviceName: "iPhone 15"
+      platformVersion: "17.0"
+      newCommandTimeout: 300

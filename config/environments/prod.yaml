@@ -1,0 +1,23 @@
+# Production. Only smoke-tagged, read-only tests should ever run here.
+# scripts/run_tests.sh enforces `--include smoke AND --exclude destructive`
+# when TEST_ENV=prod.
+execution:
+  app_key: demo_app
+  build_name: prod-smoke
+
+logging:
+  level: INFO
+
+reporting:
+  screenshot_policy: failures_only
+
+retry:
+  rerun_failed_suites: 0
+
+test_data_file: testdata/prod.yaml
+
+web:
+  base_url: https://www.example.com
+
+api:
+  base_url: https://api.example.com

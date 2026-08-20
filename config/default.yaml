@@ -1,0 +1,71 @@
+# ---------------------------------------------------------------------------
+# Base configuration. Every environment inherits from this and overrides only
+# what differs. Deep-merged in this order (later wins):
+#   default.yaml -> platforms/<platform>.yaml -> environments/<env>.yaml -> env vars
+# ---------------------------------------------------------------------------
+
+execution:
+  # sauce_vdc = Sauce virtual devices (emulator/simulator) - cheap, fast, default
+  # sauce_rdc = Sauce real device cloud - slower, costs device minutes
+  # local     = a locally running Appium server
+  target: sauce_vdc
+  platform: android
+  app_key: demo_app
+  build_name: local-dev
+
+timeouts:
+  # Seconds. Anything that waits in a page object uses one of these -
+  # never a magic number inline in a test.
+  implicit_wait: 0          # keep at 0: explicit waits only, implicit waits hide races
+  element_wait: 20
+  page_load: 30
+  app_launch: 60
+  # Sauce kills the job after this many seconds of total runtime
+  max_session_duration: 1800
+  # Sauce kills the job if no command is sent for this long
+  command_timeout: 300
+  idle_timeout: 180
+
+retry:
+  # Robot's --rerunfailed is driven by this in scripts/run_tests.sh
+  rerun_failed_suites: 1
+  # Retries around driver creation only - Sauce occasionally fails to allocate
+  session_start_attempts: 3
+  session_start_backoff_seconds: 10
+
+reporting:
+  results_dir: results
+  screenshots_dir: results/screenshots
+  logs_dir: results/logs
+  allure_dir: results/allure-results
+  # full | failures_only | none
+  screenshot_policy: failures_only
+  # Attach the Sauce job video/link into the Robot log
+  embed_sauce_links: true
+
+logging:
+  level: INFO             # DEBUG | INFO | WARN
+  console_level: INFO
+  file_name: execution.log
+
+sauce:
+  region: us-west-1
+  # Appium major version Sauce should provision. "latest" tracks their newest,
+  # "2" pins the Appium 2 line. Pin it - "latest" makes builds non-reproducible.
+  appium_version: "2"
+  # Uploaded to the job so failures are traceable back to a commit
+  tags:
+    - robotframework
+    - mobile
+
+# Placeholders used by the (currently empty) web and API layers. Present so
+# that adding those suites later is configuration, not a refactor.
+web:
+  base_url: ""
+  browser: chromium
+  headless: true
+
+api:
+  base_url: ""
+  timeout: 30
+  verify_ssl: true

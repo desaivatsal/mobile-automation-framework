@@ -1,0 +1,7 @@
+# ---------------------------------------------------------------------------
+# Optional: web UI testing. Install only when the web suites are in play:
+#   pip install -r requirements.txt -r requirements-web.txt
+#   rfbrowser init      # downloads Playwright browsers for robotframework-browser
+# ---------------------------------------------------------------------------
+robotframework-browser==20.4.0
+robotframework-seleniumlibrary==6.9.0

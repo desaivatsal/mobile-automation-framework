@@ -1,0 +1,22 @@
+*** Settings ***
+Documentation       TEMPLATE - rename to `.robot` once `requirements-web.txt` is installed.
+...                 Kept with a `.example` suffix so it never breaks `robot --dryrun` in CI.
+
+Library             Browser
+Resource            ../../resources/common/assertions.resource
+
+Suite Setup         New Browser    ${CONFIG}[web][browser]    headless=${CONFIG}[web][headless]
+Suite Teardown      Close Browser    ALL
+Test Setup          New Page    ${WEB_BASE_URL}
+
+Test Tags           web
+
+
+*** Test Cases ***
+Home Page Loads
+    [Tags]    smoke
+    Get Title    contains    Example
+
+Login Form Is Present
+    [Tags]    smoke
+    Get Element States    id=username    contains    visible

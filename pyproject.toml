@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mobile-automation-framework"
+version = "1.0.0"
+description = "Scalable Robot Framework automation platform for mobile (Appium + Sauce Labs), with extension points for web and API layers."
+requires-python = ">=3.10"
+readme = "README.md"
+
+[tool.setuptools]
+packages = ["libs", "libs.listeners", "libs.utils", "config"]
+
+# ---------------------------------------------------------------------------
+# Python formatting / linting
+# ---------------------------------------------------------------------------
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+ignore = ["E501"]
+
+# ---------------------------------------------------------------------------
+# Robot Framework linting / formatting (Robocop 8.x)
+# ---------------------------------------------------------------------------
+[tool.robocop]
+exclude = [
+    "line-too-long",          # handled by the formatter, not worth failing CI over
+    "too-many-arguments",
+    "missing-doc-suite",
+]
+
+[tool.robocop.lint]
+configure = [
+    "too-long-test-case.max_len=60",
+    "too-many-calls-in-test-case.max_calls=30",
+]
+
+[tool.robocop.format]
+line_length = 120
+
+[tool.ruff.lint.per-file-ignores]
+# These modules bootstrap sys.path before importing project code, which is the
+# only way `Library <path>.py` and `python scripts/x.py` both work.
+"libs/MobileSession.py" = ["E402"]
+"libs/listeners/EvidenceListener.py" = ["E402"]
+"config/variables.py" = ["E402"]
+"scripts/*.py" = ["E402"]
+"tests/unit/*.py" = ["E402"]

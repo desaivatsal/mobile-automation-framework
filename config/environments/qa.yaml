@@ -1,0 +1,21 @@
+# Default CI environment.
+execution:
+  app_key: demo_app
+  build_name: qa
+
+logging:
+  level: INFO
+
+reporting:
+  screenshot_policy: failures_only
+
+retry:
+  rerun_failed_suites: 1
+
+test_data_file: testdata/qa.yaml
+
+web:
+  base_url: https://qa.example.com
+
+api:
+  base_url: https://api.qa.example.com

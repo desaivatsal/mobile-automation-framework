@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# Runtime dependencies - pinned for reproducible CI runs.
+# Upgrade deliberately, never with an unpinned `pip install -U`.
+# ---------------------------------------------------------------------------
+
+# Core engine
+robotframework==7.4.2
+
+# Mobile automation (Appium). AppiumLibrary 3.x requires Appium-Python-Client>=5.1.1
+robotframework-appiumlibrary==3.2.1
+Appium-Python-Client==6.0.0
+
+# Parallel execution
+robotframework-pabot==5.2.2
+
+# Reporting
+allure-robotframework==2.16.0
+
+# Config / data handling
+PyYAML==6.0.3
+python-dotenv==1.2.3
+requests==2.34.2

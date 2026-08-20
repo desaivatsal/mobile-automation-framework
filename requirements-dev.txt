@@ -1,0 +1,7 @@
+# ---------------------------------------------------------------------------
+# Developer / CI tooling. Not needed to execute tests.
+# ---------------------------------------------------------------------------
+robotframework-robocop==8.8.0   # linter + formatter (robotidy is merged into v8)
+black==25.9.0
+ruff==0.14.4
+pytest==8.4.2                    # for unit-testing the Python helper libs

@@ -1,0 +1,23 @@
+*** Settings ***
+Documentation       TEMPLATE - rename to `.robot` once `requirements-api.txt` is installed.
+...                 Kept with a `.example` suffix so it never breaks `robot --dryrun` in CI.
+
+Library             RequestsLibrary
+Library             Collections
+
+Suite Setup         Create Session    api    ${API_BASE_URL}    verify=${CONFIG}[api][verify_ssl]
+
+Test Tags           api
+
+
+*** Test Cases ***
+Health Endpoint Responds
+    [Tags]    smoke
+    ${response}=    GET On Session    api    /health    timeout=${CONFIG}[api][timeout]
+    Status Should Be    200    ${response}
+    Should Be Equal    ${response.json()}[status]    ok
+
+Unauthenticated Request Is Rejected
+    [Tags]    regression    negative
+    ${response}=    GET On Session    api    /me    expected_status=401
+    Status Should Be    401    ${response}

@@ -1,0 +1,22 @@
+# Developer sandbox - fastest feedback, noisiest logs.
+execution:
+  app_key: demo_app
+  build_name: dev
+
+logging:
+  level: DEBUG
+  console_level: DEBUG
+
+reporting:
+  screenshot_policy: full
+
+retry:
+  rerun_failed_suites: 0
+
+test_data_file: testdata/dev.yaml
+
+web:
+  base_url: https://dev.example.com
+
+api:
+  base_url: https://api.dev.example.com

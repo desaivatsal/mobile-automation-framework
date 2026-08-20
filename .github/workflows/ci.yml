@@ -1,0 +1,108 @@
+name: CI
+
+# Runs on every push and PR. Needs NO secrets, so it works on forks and gives
+# feedback in ~60 seconds. Nothing here starts a Sauce session - that is the
+# point: catch broken syntax, bad imports and typo'd keywords before spending
+# device minutes.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Ruff (Python lint)
+        run: ruff check libs config scripts tests/unit
+
+      - name: Black (Python format check)
+        run: black --check --diff libs config scripts tests/unit
+
+      - name: Robocop (Robot lint)
+        run: robocop check
+
+      - name: Shell syntax
+        run: bash -n scripts/run_tests.sh
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: pytest tests/unit -q
+
+  dryrun:
+    name: Robot dry run (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [android, ios]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Dry run all mobile suites
+        # --dryrun resolves every import, variable and keyword without touching
+        # a device. A green dry run means the suite CAN run; it says nothing
+        # about whether it passes.
+        run: |
+          robot --dryrun \
+            --pythonpath . \
+            --variablefile config/variables.py:qa:${{ matrix.platform }}:sauce_vdc \
+            --listener libs.listeners.EvidenceListener \
+            --outputdir results/dryrun-${{ matrix.platform }} \
+            tests/mobile
+
+      - name: Upload dry-run output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dryrun-${{ matrix.platform }}
+          path: results/dryrun-${{ matrix.platform }}
+          retention-days: 7
